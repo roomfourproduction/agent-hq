@@ -211,17 +211,19 @@ function setStatus(id, msg, show) {
   el.textContent = msg;
 }
 
-function renderIdeas(containerId, ideas) {
+function renderIdeas(containerId, ideas, channelName) {
+  channelName = channelName || 'this YouTube channel';
   const el = document.getElementById(containerId);
   el.innerHTML = '';
   ideas.forEach((idea, i) => {
     const card = document.createElement('div');
     card.className = 'idea';
     const titleEsc = idea.title.replace(/"/g, '&quot;');
+    const channelEsc = channelName.replace(/"/g, '&quot;');
     card.innerHTML = `
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px;">
         <div class="idea-title" style="margin-bottom:0">${i+1}. ${idea.title}</div>
-        <button class="elab-btn" data-title="${titleEsc}" style="white-space:nowrap;font-size:12px;padding:5px 12px;border:0.5px solid rgba(0,0,0,0.2);border-radius:6px;background:#fff;cursor:pointer;flex-shrink:0;">Elaborate</button>
+        <button class="elab-btn" data-title="${titleEsc}" data-channel="${channelEsc}" style="white-space:nowrap;font-size:12px;padding:5px 12px;border:0.5px solid rgba(0,0,0,0.2);border-radius:6px;background:#fff;cursor:pointer;flex-shrink:0;">Elaborate</button>
       </div>
       <div class="idea-meta"><strong>Angle:</strong> ${idea.angle}</div>
       <div class="idea-meta"><strong>Why now:</strong> ${idea.why_now}</div>
@@ -238,6 +240,7 @@ async function elaborateIdea(btn) {
   const key = getKey();
   if (!key) { alert('Add your API key in Settings first.'); return; }
   const title = btn.getAttribute('data-title');
+  const channel = btn.getAttribute('data-channel') || 'this YouTube channel';
   const card = btn.closest('.idea');
   const result = card.querySelector('.elaborate-result');
   if (btn.textContent === 'Close') {
@@ -255,7 +258,7 @@ async function elaborateIdea(btn) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         apiKey: key,
-        messages: [{ role: 'user', content: 'Give me a full video breakdown for this YouTube idea: "' + title + '"\n\nInclude:\n- HOOK: Opening 30 seconds script\n- OUTLINE: 5-7 key sections\n- TALKING POINTS: 3-5 specific facts\n- THUMBNAIL IDEA: Visual concept and text overlay\n- TITLE VARIATIONS: 3 alternative titles\n- CALL TO ACTION: How to end the video\n\nThis is for Krypto Dreamz, a crypto/Web3 YouTube channel.' }]
+        messages: [{ role: 'user', content: 'Give me a full video breakdown for this YouTube idea: "' + title + '"\n\nInclude:\n- HOOK: Opening 30 seconds script\n- OUTLINE: 5-7 key sections\n- TALKING POINTS: 3-5 specific facts\n- THUMBNAIL IDEA: Visual concept and text overlay\n- TITLE VARIATIONS: 3 alternative titles\n- CALL TO ACTION: How to end the video\n\nThis is for ' + channel + '. Stay strictly within that channel\\'s topic — do not introduce unrelated subjects.' }]
       })
     });
     const data = await response.json();
@@ -329,7 +332,7 @@ async function runCryptoAgent() {
   const count = document.getElementById('c-count').value;
   const today = new Date().toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'});
   const prompt = `You are a YouTube research agent for Krypto Dreamz (~2000 subscribers), covering strictly: ${niches.join(', ')}. Today: ${today}. Do at least ${niches.length * 2} web searches across these niches. Return exactly ${count} video ideas as a raw JSON array. Each object: title, angle, why_now, format, niche. Raw JSON only, no markdown.`;
-  await callClaude(prompt, 'crypto-status', 'crypto-btn', (ideas) => renderIdeas('crypto-results', ideas));
+  await callClaude(prompt, 'crypto-status', 'crypto-btn', (ideas) => renderIdeas('crypto-results', ideas, 'Krypto Dreamz, a crypto/Web3 YouTube channel'));
 }
 
 async function runMusicAgent(artist) {
@@ -359,7 +362,7 @@ Strictly stay focused on AI only. Do not include crypto, Web3, NFTs, blockchain,
 Do at least 8 searches: some to find beginner confusion/demand, some to check what content already exists on that topic.
 
 Return ${count} video ideas as a raw JSON array. Each object must include: title, angle, why_now, format, and gap (a short specific note on what's missing from existing content that this video fills). Raw JSON only, no markdown.`;
-  await callClaude(prompt, 'youtube-status', 'youtube-btn', (ideas) => renderIdeas('youtube-results', ideas));
+  await callClaude(prompt, 'youtube-status', 'youtube-btn', (ideas) => renderIdeas('youtube-results', ideas, 'AI Gateway, a beginner-focused AI education YouTube channel (no crypto, no Web3, AI topics only)'));
 }
 
 async function runWeb3Agent() {
