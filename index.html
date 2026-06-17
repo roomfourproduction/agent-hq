@@ -225,6 +225,7 @@ function renderIdeas(containerId, ideas) {
       </div>
       <div class="idea-meta"><strong>Angle:</strong> ${idea.angle}</div>
       <div class="idea-meta"><strong>Why now:</strong> ${idea.why_now}</div>
+      ${idea.gap ? '<div class="idea-meta"><strong>Content gap:</strong> '+idea.gap+'</div>' : ''}
       <span class="tag">${idea.format || 'video'}</span>
       ${idea.niche ? '<span class="tag" style="margin-left:4px">'+idea.niche+'</span>' : ''}
       <div class="elaborate-result" style="display:none;margin-top:12px;padding-top:12px;border-top:0.5px solid rgba(0,0,0,0.1);font-size:13px;color:#444;line-height:1.7;white-space:pre-wrap;"></div>`;
@@ -341,17 +342,21 @@ async function runMusicAgent(artist) {
 async function runYouTubeAgent() {
   const count = document.getElementById('yt-count').value;
   const today = new Date().toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'});
-  const prompt = `You are a YouTube research agent for AI Gateway, an AI education channel for non-technical beginners. Today: ${today}.
+  const prompt = `You are a YouTube content gap research agent for AI Gateway, an AI education channel for complete beginners who may have never used AI tools before. Today: ${today}.
 
-Strictly avoid generic AI news roundups, ChatGPT update recaps, or broad "AI tools" lists — that content is oversaturated and underperforms. Instead search specifically for:
-- Real build stories: people using AI to build a tool, agent, or workflow with a specific outcome (time saved, money made, problem solved)
-- Vibe-coding and no-code AI tutorials aimed at non-technical creators and entrepreneurs
-- Specific tool-based case studies (e.g. someone automating one real task with Claude, n8n, Make, or similar) rather than tool comparisons
-- Practical AI workflows for solopreneurs, creators, or small business owners with a measurable result
+Your job is NOT to find the most popular AI topics — it is to find the gap: things beginners are confused about or actively searching for, where existing YouTube content is either oversaturated with advanced/technical videos, or missing a truly simple explanation entirely.
 
-Do at least 8 searches across these angles. For each idea returned, the angle and why_now must point to a SPECIFIC outcome or number (e.g. "saved 5 hours a week", "automated X in 20 minutes", "replaced a $200/month tool") — not a generic explainer angle.
+Process:
+1. Search for common beginner questions and confusions about AI right now (forums, search trends, common phrasing people use when they don't understand something)
+2. Search for what AI content currently exists on YouTube around those same questions
+3. Identify where there's a mismatch — real demand or confusion, but existing videos are too advanced, too technical, outdated, or simply do not exist in a beginner-friendly format
+4. Prioritize topics where you can say specifically what is missing from current content (e.g. "existing videos assume coding knowledge", "existing videos are outdated", "no one has explained this in plain language yet")
 
-Return ${count} video ideas as raw JSON array. Each: title, angle, why_now, format. Raw JSON only.`;
+The audience needs SIMPLE, foundational content — no jargon, no multi-step technical workflows, nothing that assumes prior AI experience.
+
+Do at least 8 searches: some to find beginner confusion/demand, some to check what content already exists on that topic.
+
+Return ${count} video ideas as a raw JSON array. Each object must include: title, angle, why_now, format, and gap (a short specific note on what's missing from existing content that this video fills). Raw JSON only, no markdown.`;
   await callClaude(prompt, 'youtube-status', 'youtube-btn', (ideas) => renderIdeas('youtube-results', ideas));
 }
 
