@@ -258,7 +258,7 @@ async function elaborateIdea(btn) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         apiKey: key,
-        messages: [{ role: 'user', content: 'Give me a full video breakdown for this YouTube idea: "' + title + '"\n\nInclude:\n- HOOK: Opening 30 seconds script\n- OUTLINE: 5-7 key sections\n- TALKING POINTS: 3-5 specific facts\n- THUMBNAIL IDEA: Visual concept and text overlay\n- TITLE VARIATIONS: 3 alternative titles\n- CALL TO ACTION: How to end the video\n\nThis is for ' + channel + '. Stay strictly within that channel\\'s topic — do not introduce unrelated subjects.' }]
+        messages: [{ role: 'user', content: 'Give me a full video breakdown for this YouTube idea: "' + title + '"\n\nInclude:\n- HOOK: Opening 30 seconds script\n- OUTLINE: 5-7 key sections\n- TALKING POINTS: 3-5 specific facts\n- THUMBNAIL IDEA: Visual concept and text overlay\n- TITLE VARIATIONS: 3 alternative titles\n- CALL TO ACTION: How to end the video\n\nThis is for ' + channel + '. Stay strictly within that channel topic only — do not introduce unrelated subjects.' }]
       })
     });
     const data = await response.json();
