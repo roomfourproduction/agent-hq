@@ -215,15 +215,58 @@ function renderIdeas(containerId, ideas) {
   const el = document.getElementById(containerId);
   el.innerHTML = '';
   ideas.forEach((idea, i) => {
-    el.innerHTML += `
-      <div class="idea">
-        <div class="idea-title">${i+1}. ${idea.title}</div>
-        <div class="idea-meta"><strong>Angle:</strong> ${idea.angle}</div>
-        <div class="idea-meta"><strong>Why now:</strong> ${idea.why_now}</div>
-        <span class="tag">${idea.format || 'video'}</span>
-        ${idea.niche ? '<span class="tag" style="margin-left:4px">'+idea.niche+'</span>' : ''}
-      </div>`;
+    const card = document.createElement('div');
+    card.className = 'idea';
+    const titleEsc = idea.title.replace(/"/g, '&quot;');
+    card.innerHTML = `
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px;">
+        <div class="idea-title" style="margin-bottom:0">${i+1}. ${idea.title}</div>
+        <button class="elab-btn" data-title="${titleEsc}" style="white-space:nowrap;font-size:12px;padding:5px 12px;border:0.5px solid rgba(0,0,0,0.2);border-radius:6px;background:#fff;cursor:pointer;flex-shrink:0;">Elaborate</button>
+      </div>
+      <div class="idea-meta"><strong>Angle:</strong> ${idea.angle}</div>
+      <div class="idea-meta"><strong>Why now:</strong> ${idea.why_now}</div>
+      <span class="tag">${idea.format || 'video'}</span>
+      ${idea.niche ? '<span class="tag" style="margin-left:4px">'+idea.niche+'</span>' : ''}
+      <div class="elaborate-result" style="display:none;margin-top:12px;padding-top:12px;border-top:0.5px solid rgba(0,0,0,0.1);font-size:13px;color:#444;line-height:1.7;white-space:pre-wrap;"></div>`;
+    card.querySelector('.elab-btn').addEventListener('click', function() { elaborateIdea(this); });
+    el.appendChild(card);
   });
+}
+
+async function elaborateIdea(btn) {
+  const key = getKey();
+  if (!key) { alert('Add your API key in Settings first.'); return; }
+  const title = btn.getAttribute('data-title');
+  const card = btn.closest('.idea');
+  const result = card.querySelector('.elaborate-result');
+  if (btn.textContent === 'Close') {
+    result.style.display = 'none';
+    btn.textContent = 'Elaborate';
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = 'Loading...';
+  result.style.display = 'block';
+  result.textContent = 'Generating full breakdown...';
+  try {
+    const response = await fetch('/api/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        apiKey: key,
+        messages: [{ role: 'user', content: 'Give me a full video breakdown for this YouTube idea: "' + title + '"\n\nInclude:\n- HOOK: Opening 30 seconds script\n- OUTLINE: 5-7 key sections\n- TALKING POINTS: 3-5 specific facts\n- THUMBNAIL IDEA: Visual concept and text overlay\n- TITLE VARIATIONS: 3 alternative titles\n- CALL TO ACTION: How to end the video\n\nThis is for Krypto Dreamz, a crypto/Web3 YouTube channel.' }]
+      })
+    });
+    const data = await response.json();
+    const text = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
+    result.textContent = text;
+    btn.textContent = 'Close';
+    btn.disabled = false;
+  } catch(err) {
+    result.textContent = 'Something went wrong. Try again.';
+    btn.textContent = 'Elaborate';
+    btn.disabled = false;
+  }
 }
 
 function renderList(containerId, items) {
@@ -298,7 +341,17 @@ async function runMusicAgent(artist) {
 async function runYouTubeAgent() {
   const count = document.getElementById('yt-count').value;
   const today = new Date().toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'});
-  const prompt = `You are a YouTube research agent for AI Gateway, an AI education channel for beginners (~new channel). Today: ${today}. Search for trending AI topics suitable for beginner audiences: AI tools, ChatGPT updates, Claude news, AI for everyday use, automation for non-technical people. Do at least 6 searches. Return ${count} video ideas as raw JSON array. Each: title, angle, why_now, format. Raw JSON only.`;
+  const prompt = `You are a YouTube research agent for AI Gateway, an AI education channel for non-technical beginners. Today: ${today}.
+
+Strictly avoid generic AI news roundups, ChatGPT update recaps, or broad "AI tools" lists — that content is oversaturated and underperforms. Instead search specifically for:
+- Real build stories: people using AI to build a tool, agent, or workflow with a specific outcome (time saved, money made, problem solved)
+- Vibe-coding and no-code AI tutorials aimed at non-technical creators and entrepreneurs
+- Specific tool-based case studies (e.g. someone automating one real task with Claude, n8n, Make, or similar) rather than tool comparisons
+- Practical AI workflows for solopreneurs, creators, or small business owners with a measurable result
+
+Do at least 8 searches across these angles. For each idea returned, the angle and why_now must point to a SPECIFIC outcome or number (e.g. "saved 5 hours a week", "automated X in 20 minutes", "replaced a $200/month tool") — not a generic explainer angle.
+
+Return ${count} video ideas as raw JSON array. Each: title, angle, why_now, format. Raw JSON only.`;
   await callClaude(prompt, 'youtube-status', 'youtube-btn', (ideas) => renderIdeas('youtube-results', ideas));
 }
 
