@@ -97,7 +97,7 @@
   <div class="section" id="tab-music">
     <div class="section-header">
       <h2>Music</h2>
-      <p>Promotion research for Jon Fro and Cathy Yale</p>
+      <p>Promotion and publishing research for Jon Fro</p>
     </div>
     <div class="agent-card">
       <div class="agent-card-header">
@@ -113,13 +113,24 @@
     <div class="agent-card">
       <div class="agent-card-header">
         <div>
-          <div class="agent-card-title">Cathy Yale — promo research</div>
-          <div class="agent-card-desc">Finds placement and press opportunities for Seasons of Time</div>
+          <div class="agent-card-title">Jon Fro — publishing opportunities</div>
+          <div class="agent-card-desc">Finds legitimate music publishers and sync licensing companies actively seeking new singer/songwriter, folk, and acoustic rock material</div>
         </div>
-        <button class="run-btn" onclick="runMusicAgent('cathyyale')" id="music-cathyyale-btn">&#9654; Run</button>
+        <button class="run-btn" onclick="runPublishingAgent()" id="publishing-btn">&#9654; Run</button>
       </div>
-      <div class="status" id="music-cathyyale-status">Researching...</div>
-      <div class="results" id="music-cathyyale-results"></div>
+      <div class="status" id="publishing-status">Researching...</div>
+      <div class="results" id="publishing-results"></div>
+    </div>
+    <div class="agent-card">
+      <div class="agent-card-header">
+        <div>
+          <div class="agent-card-title">Jon Fro — radio opportunities</div>
+          <div class="agent-card-desc">Finds college, indie, and folk-format radio stations actively seeking new acoustic, singer-songwriter, and folk music for airplay</div>
+        </div>
+        <button class="run-btn" onclick="runRadioAgent()" id="radio-btn">&#9654; Run</button>
+      </div>
+      <div class="status" id="radio-status">Researching...</div>
+      <div class="results" id="radio-results"></div>
     </div>
   </div>
 
@@ -337,9 +348,43 @@ async function runCryptoAgent() {
 
 async function runMusicAgent(artist) {
   const today = new Date().toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'});
-  const artistName = artist === 'jonfro' ? 'Jon Fro (Pacific Northwest folk/indie singer-songwriter, new album: All The Pieces)' : 'Cathy Yale (album: Seasons of Time)';
+  const artistName = 'Jon Fro (Pacific Northwest folk/indie singer-songwriter, new album: All The Pieces)';
   const prompt = `You are a music promotion research agent. Today: ${today}. Research current opportunities for ${artistName}. Search for: active folk/indie music blogs accepting submissions, Spotify playlist curators for folk/indie, music press contacts, SubmitHub opportunities, Groover campaigns. Return 8 opportunities as a raw JSON array. Each: title (outlet/opportunity name), description (what it is and why relevant), action (specific next step), tag (type: blog/playlist/press/submit). Raw JSON only.`;
   await callClaude(prompt, `music-${artist}-status`, `music-${artist}-btn`, (items) => renderList(`music-${artist}-results`, items));
+}
+
+async function runPublishingAgent() {
+  const today = new Date().toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'});
+  const prompt = `You are a music publishing research agent for Jon Fro, a singer/songwriter working in folk and acoustic rock. Today: ${today}.
+
+Find legitimate music publishers and sync licensing companies that are CURRENTLY and ACTIVELY seeking new songs to add to their catalog or library, specifically in singer/songwriter, folk, or acoustic rock styles.
+
+Strict requirements:
+- Only legitimate publishers and sync licensing companies with a real, verifiable track record (existing placements, established catalog, real client list, or industry recognition)
+- Exclude any company that requires upfront fees to submit or join — legitimate publishers do not charge artists to be considered
+- Exclude pay-to-play submission platforms unless they have a strong, verifiable reputation
+- Prioritize companies actively placing music in TV, film, ads, or licensing libraries, as well as traditional publishers looking to sign songs
+- For each result, note specifically why it fits folk/acoustic singer-songwriter material
+
+Do at least 8 searches to find current, active opportunities — not outdated or defunct ones. Return 8 opportunities as a raw JSON array. Each object: title (company name), description (what they do and their track record), action (exact next step to submit or get in touch), tag (sync licensing / traditional publisher / library music). Raw JSON only, no markdown.`;
+  await callClaude(prompt, 'publishing-status', 'publishing-btn', (items) => renderList('publishing-results', items));
+}
+
+async function runRadioAgent() {
+  const today = new Date().toLocaleDateString('en-US', {year:'numeric',month:'long',day:'numeric'});
+  const prompt = `You are a radio promotion research agent for Jon Fro, a singer/songwriter working in acoustic, folk, and singer-songwriter styles. Today: ${today}.
+
+Find radio stations and radio programs that are CURRENTLY and ACTIVELY seeking new music submissions in acoustic, singer-songwriter, or folk formats. Prioritize:
+- College radio stations with folk/Americana/singer-songwriter shows or formats
+- Independent and community radio stations with folk or acoustic programming
+- Syndicated folk/Americana radio shows that accept artist submissions
+- Internet/streaming radio stations or shows focused on folk and singer-songwriter music
+- Radio pluggers or radio promotion services with a legitimate track record in the folk/Americana space
+
+Exclude any station or service that charges high upfront fees with no real track record, and avoid generic top-40 or mainstream pop/rock stations that don't fit this style.
+
+Do at least 8 searches to find current, active opportunities. Return 8 opportunities as a raw JSON array. Each object: title (station/show name), description (format and why it fits folk/acoustic singer-songwriter music), action (exact next step to submit music), tag (college radio / independent radio / syndicated show / radio plugger). Raw JSON only, no markdown.`;
+  await callClaude(prompt, 'radio-status', 'radio-btn', (items) => renderList('radio-results', items));
 }
 
 async function runYouTubeAgent() {
